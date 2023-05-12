@@ -1,8 +1,10 @@
 const path = require("path");
 const express = require("express");
+const session = require("express-session");
+const Store = require("connect-session-knex")(session);
 const authRouter = require("./auth/auth-router");
 const usersRouter = require("./users/users-router.js");
-const session = require("express-session");
+
 const server = express();
 
 server.use(express.static(path.join(__dirname, "../client")));
@@ -19,6 +21,13 @@ server.use(
     rolling: true,
     resave: false,
     saveUninitialized: false,
+    store: new Store({
+      knex: require("../database/db-config"),
+      tablename: "sessions",
+      sidfieldname: "sid", 
+      createtable: true, 
+      clearInterval: 1000 * 60 * 60,
+    }),
   })
 );
 
