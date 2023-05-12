@@ -10,16 +10,32 @@ router.post("/register", async (req, res, next) => {
     const newUser = { username, password: hash };
     const result = await User.add(newUser);
     res.status(201).json({
-        message: `nice to have you, ${result.username}`,
-    })
+      message: `nice to have you, ${result.username}`,
+    });
   } catch (err) {
-    console.log(err);
+    next(err);
   }
 });
+
 router.post("/login", async (req, res, next) => {
-  res.json({ message: "login working" });
+  try {
+    const { username, password } = req.body;
+    const [user] = await User.findBy({ username: username });
+    if (user && bcrypt.compareSync(password, user.password)) {
+      req.session.user = user;
+      res.json({ message: `welcome back ${user.username}` });
+    } else {
+      next({
+        status: 401,
+        message: "bad credentials",
+      });
+    }
+  } catch (err) {
+    
+    next(err);
+  }
 });
-router.get("/logout", async (req, res, next) => {
+router.get("/logout", async (req, res) => {
   res.json({ message: "logout working" });
 });
 
